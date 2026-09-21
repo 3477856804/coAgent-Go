@@ -33,10 +33,36 @@ Releases页面下载对应平台的二进制文件，直接运行。
 
 ## 配置
 
-设置DeepSeek API Key：
+### 免费模型API
 
+**Silicon Flow（推荐，完全免费）：**
 ```bash
+# 注册获取免费API Key: https://siliconflow.cn
+export SILICONFLOW_API_KEY="你的API Key"
+export COAGENT_PROVIDER="siliconflow"
+export COAGENT_MODEL="Qwen/Qwen2.5-7B-Instruct"
+```
+
+**智谱AI（GLM-4-Flash免费）：**
+```bash
+# 注册获取免费API Key: https://open.bigmodel.cn
+export ZHIPU_API_KEY="你的API Key"
+export COAGENT_PROVIDER="zhipu"
+export COAGENT_MODEL="glm-4-flash"
+```
+
+**DeepSeek（有免费额度）：**
+```bash
+# 注册获取API Key: https://platform.deepseek.com
 export DEEPSEEK_API_KEY="你的API Key"
+export COAGENT_PROVIDER="deepseek"
+```
+
+**OpenRouter（有免费模型）：**
+```bash
+# 注册获取API Key: https://openrouter.ai
+export OPENROUTER_API_KEY="你的API Key"
+export COAGENT_PROVIDER="openrouter"
 ```
 
 ## 使用

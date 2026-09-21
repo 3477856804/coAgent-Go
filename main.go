@@ -26,9 +26,45 @@ const (
 
 // ========== 配置结构 ==========
 type Config struct {
-	APIKey  string
-	Model   string
-	BaseURL string
+	Provider string // 提供商名称
+	APIKey   string
+	Model    string
+	BaseURL  string
+}
+
+// ========== 模型提供商 ==========
+type Provider struct {
+	Name        string
+	BaseURL     string
+	DefaultModel string
+	Description string
+}
+
+var providers = []Provider{
+	{
+		Name:        "siliconflow",
+		BaseURL:     "https://api.siliconflow.cn/v1/chat/completions",
+		DefaultModel: "Qwen/Qwen2.5-7B-Instruct",
+		Description: "Silicon Flow - 免费模型",
+	},
+	{
+		Name:        "zhipu",
+		BaseURL:     "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+		DefaultModel: "glm-4-flash",
+		Description: "智谱AI - GLM-4-Flash免费",
+	},
+	{
+		Name:        "deepseek",
+		BaseURL:     "https://api.deepseek.com/v1/chat/completions",
+		DefaultModel: "deepseek-chat",
+		Description: "DeepSeek - 有免费额度",
+	},
+	{
+		Name:        "openrouter",
+		BaseURL:     "https://openrouter.ai/api/v1/chat/completions",
+		DefaultModel: "free",
+		Description: "OpenRouter - 有免费模型",
+	},
 }
 
 // ========== 工具结构 ==========
@@ -53,9 +89,22 @@ var (
 
 // ========== 初始化 ==========
 func init() {
+	// 默认使用Silicon Flow免费模型
 	config = Config{
-		Model:   "deepseek-chat",
-		BaseURL: "https://api.deepseek.com/v1/chat/completions",
+		Provider: "siliconflow",
+		Model:    "Qwen/Qwen2.5-7B-Instruct",
+		BaseURL:  "https://api.siliconflow.cn/v1/chat/completions",
+	}
+
+	// 从环境变量读取配置
+	if provider := os.Getenv("COAGENT_PROVIDER"); provider != "" {
+		config.Provider = provider
+	}
+	if model := os.Getenv("COAGENT_MODEL"); model != "" {
+		config.Model = model
+	}
+	if baseURL := os.Getenv("COAGENT_BASE_URL"); baseURL != "" {
+		config.BaseURL = baseURL
 	}
 
 	// 初始化工具
@@ -244,12 +293,18 @@ func callAI(messages []Message) (string, error) {
 func printWelcome() {
 	fmt.Printf(ColorCyan + `
 ================================================
-  coAgent-Go v0.0.1 - 纯Go AI编程Agent
+  coAgent-Go v0.0.2 - 纯Go AI编程Agent
   内置工具: %d 个
+  提供商: %s
   模型: %s
 ================================================
-` + ColorReset, len(tools), config.Model)
+` + ColorReset, len(tools), config.Provider, config.Model)
 
+	fmt.Println("支持的免费模型提供商:")
+	for _, p := range providers {
+		fmt.Printf("  - %s: %s\n", p.Name, p.Description)
+	}
+	fmt.Println()
 	fmt.Println("输入 'quit' 退出，'help' 查看帮助\n")
 }
 
@@ -274,7 +329,22 @@ func main() {
 	}
 
 	// 从环境变量读取API Key
-	config.APIKey = os.Getenv("DEEPSEEK_API_KEY")
+	// 不同提供商用不同的环境变量
+	switch config.Provider {
+	case "siliconflow":
+		config.APIKey = os.Getenv("SILICONFLOW_API_KEY")
+	case "zhipu":
+		config.APIKey = os.Getenv("ZHIPU_API_KEY")
+	case "deepseek":
+		config.APIKey = os.Getenv("DEEPSEEK_API_KEY")
+	case "openrouter":
+		config.APIKey = os.Getenv("OPENROUTER_API_KEY")
+	}
+
+	// 通用API Key环境变量
+	if config.APIKey == "" {
+		config.APIKey = os.Getenv("COAGENT_API_KEY")
+	}
 
 	scanner := bufio.NewScanner(os.Stdin)
 
