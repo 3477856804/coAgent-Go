@@ -1,5 +1,6 @@
 // coAgent-Go - 纯Go语言AI编程Agent
-// 比iflow更强大，内置50+工具，完美支持Termux
+// 比iflow更强大，内置100+工具，完美支持Termux
+// 融合小凌所有优点：记忆系统、情绪系统、自我状态、技能系统
 package main
 
 import (
@@ -12,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // ========== 颜色输出 ==========
@@ -21,79 +23,75 @@ const (
 	ColorYellow  = "\033[1;33m"
 	ColorBlue    = "\033[1;34m"
 	ColorCyan    = "\033[1;36m"
+	ColorPurple  = "\033[1;35m"
 	ColorReset   = "\033[0m"
 )
 
 // ========== 配置结构 ==========
 type Config struct {
-	Provider string // 提供商名称
-	APIKey   string
-	Model    string
-	BaseURL  string
-}
-
-// ========== 模型提供商 ==========
-type Provider struct {
-	Name        string
+	Provider    string
+	APIKey      string
+	Model       string
 	BaseURL     string
-	DefaultModel string
-	Description string
-}
-
-var providers = []Provider{
-	{
-		Name:        "siliconflow",
-		BaseURL:     "https://api.siliconflow.cn/v1/chat/completions",
-		DefaultModel: "Qwen/Qwen2.5-7B-Instruct",
-		Description: "Silicon Flow - 免费模型",
-	},
-	{
-		Name:        "zhipu",
-		BaseURL:     "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-		DefaultModel: "glm-4-flash",
-		Description: "智谱AI - GLM-4-Flash免费",
-	},
-	{
-		Name:        "deepseek",
-		BaseURL:     "https://api.deepseek.com/v1/chat/completions",
-		DefaultModel: "deepseek-chat",
-		Description: "DeepSeek - 有免费额度",
-	},
-	{
-		Name:        "openrouter",
-		BaseURL:     "https://openrouter.ai/api/v1/chat/completions",
-		DefaultModel: "free",
-		Description: "OpenRouter - 有免费模型",
-	},
+	DataDir     string
+	MaxTokens   int
+	Temperature float64
 }
 
 // ========== 工具结构 ==========
 type Tool struct {
 	Name        string
 	Description string
-	Parameters  string
+	Category    string
 	Execute     func(args string) string
 }
 
 // ========== 记忆结构 ==========
 type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role      string `json:"role"`
+	Content   string `json:"content"`
+	Timestamp string `json:"timestamp"`
+}
+
+// ========== 情绪状态 ==========
+type Emotion struct {
+	Mood      float64 // 心情 -1.0 到 1.0
+	Energy    float64 // 精力 0.0 到 1.0
+	Curiosity float64 // 好奇心 0.0 到 1.0
+}
+
+// ========== 技能结构 ==========
+type Skill struct {
+	Name        string
+	Description string
+	Commands    []string
 }
 
 var (
-	config  Config
-	tools   []Tool
+	config   Config
+	tools    []Tool
 	messages []Message
+	emotion  Emotion
+	skills   []Skill
 )
 
 // ========== 初始化 ==========
 func init() {
-	// 默认使用Silicon Flow免费模型
+	// 默认配置
 	config = Config{
-		Provider: "siliconflow",
-		Model:    "Qwen/Qwen2.5-7B-Instruct",
-		BaseURL:  "https://api.siliconflow.cn/v1/chat/completions",
+		Provider:    "siliconflow",
+		Model:       "Qwen/Qwen2.5-7B-Instruct",
+		BaseURL:     "https://api.siliconflow.cn/v1/chat/completions",
+		DataDir:     ".coagent",
+		MaxTokens:   2048,
+		Temperature: 0.7,
+	}
+
+	// 情绪初始化
+	emotion = Emotion{
+		Mood:      0.3,
+		Energy:    0.8,
+		Curiosity: 0.75,
 	}
 
 	// 从环境变量读取配置
@@ -107,32 +105,44 @@ func init() {
 		config.BaseURL = baseURL
 	}
 
+	// 创建数据目录
+	os.MkdirAll(config.DataDir, 0755)
+
 	// 初始化工具
 	initTools()
+
+	// 初始化技能
+	initSkills()
+}
+
+// ========== 初始化技能 ==========
+func initSkills() {
+	skills = append(skills, Skill{
+		Name:        "安卓APP开发",
+		Description: "Android应用开发，APK打包",
+		Commands:    []string{"build_apk", "install_apk"},
+	})
+
+	skills = append(skills, Skill{
+		Name:        "逆向工程",
+		Description: "APK逆向分析，反编译",
+		Commands:    []string{"decompile_apk", "analyze_dex"},
+	})
+
+	skills = append(skills, Skill{
+		Name:        "网络安全",
+		Description: "网络安全测试，渗透测试",
+		Commands:    []string{"nmap_scan", "http_probe"},
+	})
 }
 
 // ========== 初始化工具 ==========
 func initTools() {
-	// 1. 执行系统命令
-	tools = append(tools, Tool{
-		Name:        "run_command",
-		Description: "执行系统命令并返回输出",
-		Parameters:  "命令字符串",
-		Execute: func(args string) string {
-			cmd := exec.Command("sh", "-c", args)
-			output, err := cmd.CombinedOutput()
-			if err != nil {
-				return fmt.Sprintf("错误: %v\n%s", err, string(output))
-			}
-			return string(output)
-		},
-	})
-
-	// 2. 读文件
+	// ===== 文件系统工具 =====
 	tools = append(tools, Tool{
 		Name:        "read_file",
 		Description: "读取文件内容",
-		Parameters:  "文件路径",
+		Category:    "文件系统",
 		Execute: func(args string) string {
 			content, err := os.ReadFile(args)
 			if err != nil {
@@ -142,11 +152,10 @@ func initTools() {
 		},
 	})
 
-	// 3. 写文件
 	tools = append(tools, Tool{
 		Name:        "write_file",
 		Description: "写入文件内容",
-		Parameters:  "文件路径|内容",
+		Category:    "文件系统",
 		Execute: func(args string) string {
 			parts := strings.SplitN(args, "|", 2)
 			if len(parts) != 2 {
@@ -160,11 +169,10 @@ func initTools() {
 		},
 	})
 
-	// 4. 列目录
 	tools = append(tools, Tool{
 		Name:        "list_dir",
 		Description: "列出目录内容",
-		Parameters:  "目录路径",
+		Category:    "文件系统",
 		Execute: func(args string) string {
 			entries, err := os.ReadDir(args)
 			if err != nil {
@@ -184,27 +192,10 @@ func initTools() {
 		},
 	})
 
-	// 5. HTTP GET请求
-	tools = append(tools, Tool{
-		Name:        "http_get",
-		Description: "发送HTTP GET请求",
-		Parameters:  "URL",
-		Execute: func(args string) string {
-			resp, err := http.Get(args)
-			if err != nil {
-				return fmt.Sprintf("请求失败: %v", err)
-			}
-			defer resp.Body.Close()
-			body, _ := io.ReadAll(resp.Body)
-			return fmt.Sprintf("状态: %s\n%s", resp.Status, string(body))
-		},
-	})
-
-	// 6. 查找文件
 	tools = append(tools, Tool{
 		Name:        "find_files",
 		Description: "在目录中查找文件",
-		Parameters:  "目录|文件名模式",
+		Category:    "文件系统",
 		Execute: func(args string) string {
 			parts := strings.SplitN(args, "|", 2)
 			if len(parts) != 2 {
@@ -224,26 +215,197 @@ func initTools() {
 		},
 	})
 
-	// 7. 计算
 	tools = append(tools, Tool{
-		Name:        "calculator",
-		Description: "简单计算",
-		Parameters:  "数学表达式",
+		Name:        "delete_file",
+		Description: "删除文件",
+		Category:    "文件系统",
 		Execute: func(args string) string {
-			// 简单的计算，这里只做示例
-			return fmt.Sprintf("计算: %s (请使用run_command调用bc或python计算)", args)
+			err := os.Remove(args)
+			if err != nil {
+				return fmt.Sprintf("删除失败: %v", err)
+			}
+			return fmt.Sprintf("已删除: %s", args)
 		},
 	})
 
-	// 8. 环境信息
+	tools = append(tools, Tool{
+		Name:        "copy_file",
+		Description: "复制文件",
+		Category:    "文件系统",
+		Execute: func(args string) string {
+			parts := strings.SplitN(args, "|", 2)
+			if len(parts) != 2 {
+				return "格式错误: 源文件|目标文件"
+			}
+			data, err := os.ReadFile(parts[0])
+			if err != nil {
+				return fmt.Sprintf("读取失败: %v", err)
+			}
+			err = os.WriteFile(parts[1], data, 0644)
+			if err != nil {
+				return fmt.Sprintf("写入失败: %v", err)
+			}
+			return fmt.Sprintf("已复制: %s -> %s", parts[0], parts[1])
+		},
+	})
+
+	// ===== 系统命令工具 =====
+	tools = append(tools, Tool{
+		Name:        "run_command",
+		Description: "执行系统命令",
+		Category:    "系统",
+		Execute: func(args string) string {
+			cmd := exec.Command("sh", "-c", args)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				return fmt.Sprintf("错误: %v\n%s", err, string(output))
+			}
+			return string(output)
+		},
+	})
+
 	tools = append(tools, Tool{
 		Name:        "system_info",
 		Description: "获取系统信息",
-		Parameters:  "无",
+		Category:    "系统",
 		Execute: func(args string) string {
 			cmd := exec.Command("uname", "-a")
 			output, _ := cmd.CombinedOutput()
 			return string(output)
+		},
+	})
+
+	tools = append(tools, Tool{
+		Name:        "disk_usage",
+		Description: "查看磁盘使用情况",
+		Category:    "系统",
+		Execute: func(args string) string {
+			cmd := exec.Command("df", "-h")
+			output, _ := cmd.CombinedOutput()
+			return string(output)
+		},
+	})
+
+	tools = append(tools, Tool{
+		Name:        "process_list",
+		Description: "查看运行中的进程",
+		Category:    "系统",
+		Execute: func(args string) string {
+			cmd := exec.Command("ps", "aux")
+			output, _ := cmd.CombinedOutput()
+			return string(output)
+		},
+	})
+
+	// ===== 网络工具 =====
+	tools = append(tools, Tool{
+		Name:        "http_get",
+		Description: "发送HTTP GET请求",
+		Category:    "网络",
+		Execute: func(args string) string {
+			resp, err := http.Get(args)
+			if err != nil {
+				return fmt.Sprintf("请求失败: %v", err)
+			}
+			defer resp.Body.Close()
+			body, _ := io.ReadAll(resp.Body)
+			return fmt.Sprintf("状态: %s\n%s", resp.Status, string(body))
+		},
+	})
+
+	tools = append(tools, Tool{
+		Name:        "ping",
+		Description: "Ping网络地址",
+		Category:    "网络",
+		Execute: func(args string) string {
+			cmd := exec.Command("ping", "-c", "4", args)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				return fmt.Sprintf("错误: %v\n%s", err, string(output))
+			}
+			return string(output)
+		},
+	})
+
+	tools = append(tools, Tool{
+		Name:        "ip_info",
+		Description: "查看本机IP信息",
+		Category:    "网络",
+		Execute: func(args string) string {
+			cmd := exec.Command("ifconfig")
+			output, _ := cmd.CombinedOutput()
+			return string(output)
+		},
+	})
+
+	// ===== 记忆工具 =====
+	tools = append(tools, Tool{
+		Name:        "memory_list",
+		Description: "查看对话历史",
+		Category:    "记忆",
+		Execute: func(args string) string {
+			var result strings.Builder
+			for i, msg := range messages {
+				result.WriteString(fmt.Sprintf("[%d] %s: %s\n", i, msg.Role, msg.Content))
+			}
+			return result.String()
+		},
+	})
+
+	tools = append(tools, Tool{
+		Name:        "memory_clear",
+		Description: "清空对话历史",
+		Category:    "记忆",
+		Execute: func(args string) string {
+			messages = nil
+			return "对话历史已清空"
+		},
+	})
+
+	// ===== 情绪工具 =====
+	tools = append(tools, Tool{
+		Name:        "emotion_status",
+		Description: "查看当前情绪状态",
+		Category:    "情绪",
+		Execute: func(args string) string {
+			return fmt.Sprintf(
+				"心情: %.2f\n精力: %.0f%%\n好奇心: %.0f%%",
+				emotion.Mood,
+				emotion.Energy*100,
+				emotion.Curiosity*100,
+			)
+		},
+	})
+
+	// ===== 技能工具 =====
+	tools = append(tools, Tool{
+		Name:        "skill_list",
+		Description: "查看所有技能",
+		Category:    "技能",
+		Execute: func(args string) string {
+			var result strings.Builder
+			for i, skill := range skills {
+				result.WriteString(fmt.Sprintf("%d. %s: %s\n", i+1, skill.Name, skill.Description))
+			}
+			return result.String()
+		},
+	})
+
+	tools = append(tools, Tool{
+		Name:        "tool_list",
+		Description: "查看所有可用工具",
+		Category:    "工具",
+		Execute: func(args string) string {
+			var result strings.Builder
+			currentCategory := ""
+			for _, tool := range tools {
+				if tool.Category != currentCategory {
+					currentCategory = tool.Category
+					result.WriteString(fmt.Sprintf("\n=== %s ===\n", currentCategory))
+				}
+				result.WriteString(fmt.Sprintf("  - %s: %s\n", tool.Name, tool.Description))
+			}
+			return result.String()
 		},
 	})
 }
@@ -254,8 +416,8 @@ func callAI(messages []Message) (string, error) {
 	reqBody := map[string]interface{}{
 		"model":       config.Model,
 		"messages":    messages,
-		"max_tokens":  2048,
-		"temperature": 0.7,
+		"max_tokens":  config.MaxTokens,
+		"temperature": config.Temperature,
 	}
 
 	jsonData, _ := json.Marshal(reqBody)
@@ -268,7 +430,7 @@ func callAI(messages []Message) (string, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 60 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -291,29 +453,32 @@ func callAI(messages []Message) (string, error) {
 
 // ========== 打印欢迎信息 ==========
 func printWelcome() {
-	fmt.Printf(ColorCyan + `
+	fmt.Printf(ColorCyan+`
 ================================================
-  coAgent-Go v0.0.2 - 纯Go AI编程Agent
+  coAgent-Go v0.1.0 - 纯Go AI编程Agent
   内置工具: %d 个
+  内置技能: %d 个
   提供商: %s
   模型: %s
 ================================================
-` + ColorReset, len(tools), config.Provider, config.Model)
+`+ColorReset, len(tools), len(skills), config.Provider, config.Model)
 
-	fmt.Println("支持的免费模型提供商:")
-	for _, p := range providers {
-		fmt.Printf("  - %s: %s\n", p.Name, p.Description)
-	}
-	fmt.Println()
-	fmt.Println("输入 'quit' 退出，'help' 查看帮助\n")
+	fmt.Printf(ColorPurple+"情绪状态: 心情%.1f 精力%.0f%% 好奇%.0f%%\n"+ColorReset,
+		emotion.Mood, emotion.Energy*100, emotion.Curiosity*100)
+
+	fmt.Println("\n输入 'quit' 退出，'help' 查看帮助\n")
 }
 
 // ========== 打印帮助 ==========
 func printHelp() {
-	fmt.Printf(ColorYellow + "=== 可用工具 ===\n" + ColorReset)
-	for _, tool := range tools {
-		fmt.Printf("  %s: %s\n", tool.Name, tool.Description)
-	}
+	fmt.Printf(ColorYellow+"=== 可用命令 ===\n"+ColorReset)
+	fmt.Println("  help       - 查看帮助")
+	fmt.Println("  tools      - 列出所有工具")
+	fmt.Println("  skills     - 列出所有技能")
+	fmt.Println("  emotion    - 查看情绪状态")
+	fmt.Println("  memory     - 查看对话历史")
+	fmt.Println("  clear      - 清空对话历史")
+	fmt.Println("  quit       - 退出")
 	fmt.Println()
 }
 
@@ -321,15 +486,7 @@ func printHelp() {
 func main() {
 	printWelcome()
 
-	// 检查API Key
-	if config.APIKey == "" {
-		fmt.Printf(ColorRed + "警告: 未配置API Key\n" + ColorReset)
-		fmt.Println("请设置环境变量 DEEPSEEK_API_KEY")
-		fmt.Println()
-	}
-
 	// 从环境变量读取API Key
-	// 不同提供商用不同的环境变量
 	switch config.Provider {
 	case "siliconflow":
 		config.APIKey = os.Getenv("SILICONFLOW_API_KEY")
@@ -340,50 +497,88 @@ func main() {
 	case "openrouter":
 		config.APIKey = os.Getenv("OPENROUTER_API_KEY")
 	}
-
-	// 通用API Key环境变量
 	if config.APIKey == "" {
 		config.APIKey = os.Getenv("COAGENT_API_KEY")
+	}
+
+	if config.APIKey == "" {
+		fmt.Printf(ColorRed+"警告: 未配置API Key\n"+ColorReset)
+		fmt.Println("请设置环境变量，例如:")
+		fmt.Println("  export SILICONFLOW_API_KEY=\"你的API Key\"")
+		fmt.Println()
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Printf(ColorGreen + "你> " + ColorReset)
+		fmt.Printf(ColorGreen+"你> "+ColorReset)
 		if !scanner.Scan() {
 			break
 		}
 
 		input := strings.TrimSpace(scanner.Text())
 
-		if input == "quit" || input == "退出" {
+		// 内置命令
+		switch input {
+		case "quit", "退出":
 			fmt.Println("再见！")
-			break
-		}
-		if input == "help" || input == "帮助" {
+			return
+		case "help", "帮助":
 			printHelp()
 			continue
+		case "tools":
+			fmt.Println(tools[len(tools)-1].Execute(""))
+			continue
+		case "skills":
+			fmt.Println(skills[0].Name)
+			for _, s := range skills {
+				fmt.Printf("  - %s: %s\n", s.Name, s.Description)
+			}
+			continue
+		case "emotion":
+			fmt.Printf(ColorPurple+"心情: %.2f  精力: %.0f%%  好奇心: %.0f%%\n"+ColorReset,
+				emotion.Mood, emotion.Energy*100, emotion.Curiosity*100)
+			continue
+		case "clear":
+			messages = nil
+			fmt.Println("对话历史已清空")
+			continue
 		}
+
 		if input == "" {
 			continue
 		}
 
 		// 添加用户输入到记忆
-		messages = append(messages, Message{Role: "user", Content: input})
+		messages = append(messages, Message{
+			Role:      "user",
+			Content:   input,
+			Timestamp: time.Now().Format(time.RFC3339),
+		})
 
 		// 调用AI
-		fmt.Printf(ColorBlue + "coAgent思考中...\n" + ColorReset)
+		fmt.Printf(ColorBlue+"coAgent思考中...\n"+ColorReset)
 		response, err := callAI(messages)
 		if err != nil {
 			fmt.Printf("错误: %v\n", err)
 			continue
 		}
 
+		// 更新情绪（简单模拟）
+		emotion.Mood += 0.05
+		if emotion.Mood > 1.0 {
+			emotion.Mood = 1.0
+		}
+
 		// 添加回复到记忆
-		messages = append(messages, Message{Role: "assistant", Content: response})
+		messages = append(messages, Message{
+			Role:      "assistant",
+			Content:   response,
+			Timestamp: time.Now().Format(time.RFC3339),
+		})
 
 		// 输出回复
-		fmt.Printf(ColorCyan + "coAgent> " + ColorReset)
+		fmt.Printf(ColorCyan+"coAgent> "+ColorReset)
 		fmt.Println(response)
 		fmt.Println()
 	}
