@@ -53,13 +53,6 @@ type Message struct {
 	Timestamp string `json:"timestamp"`
 }
 
-// ========== 情绪状态 ==========
-type Emotion struct {
-	Mood      float64 // 心情 -1.0 到 1.0
-	Energy    float64 // 精力 0.0 到 1.0
-	Curiosity float64 // 好奇心 0.0 到 1.0
-}
-
 // ========== 技能结构 ==========
 type Skill struct {
 	Name        string
@@ -71,7 +64,6 @@ var (
 	config   Config
 	tools    []Tool
 	messages []Message
-	emotion  Emotion
 	skills   []Skill
 )
 
@@ -85,13 +77,6 @@ func init() {
 		DataDir:     ".coagent",
 		MaxTokens:   2048,
 		Temperature: 0.7,
-	}
-
-	// 情绪初始化
-	emotion = Emotion{
-		Mood:      0.3,
-		Energy:    0.8,
-		Curiosity: 0.75,
 	}
 
 	// 从环境变量读取配置
@@ -362,21 +347,6 @@ func initTools() {
 		},
 	})
 
-	// ===== 情绪工具 =====
-	tools = append(tools, Tool{
-		Name:        "emotion_status",
-		Description: "查看当前情绪状态",
-		Category:    "情绪",
-		Execute: func(args string) string {
-			return fmt.Sprintf(
-				"心情: %.2f\n精力: %.0f%%\n好奇心: %.0f%%",
-				emotion.Mood,
-				emotion.Energy*100,
-				emotion.Curiosity*100,
-			)
-		},
-	})
-
 	// ===== 技能工具 =====
 	tools = append(tools, Tool{
 		Name:        "skill_list",
@@ -463,9 +433,6 @@ func printWelcome() {
 ================================================
 `+ColorReset, len(tools), len(skills), config.Provider, config.Model)
 
-	fmt.Printf(ColorPurple+"情绪状态: 心情%.1f 精力%.0f%% 好奇%.0f%%\n"+ColorReset,
-		emotion.Mood, emotion.Energy*100, emotion.Curiosity*100)
-
 	fmt.Println("\n输入 'quit' 退出，'help' 查看帮助\n")
 }
 
@@ -475,7 +442,6 @@ func printHelp() {
 	fmt.Println("  help       - 查看帮助")
 	fmt.Println("  tools      - 列出所有工具")
 	fmt.Println("  skills     - 列出所有技能")
-	fmt.Println("  emotion    - 查看情绪状态")
 	fmt.Println("  memory     - 查看对话历史")
 	fmt.Println("  clear      - 清空对话历史")
 	fmt.Println("  quit       - 退出")
@@ -530,14 +496,9 @@ func main() {
 			fmt.Println(tools[len(tools)-1].Execute(""))
 			continue
 		case "skills":
-			fmt.Println(skills[0].Name)
 			for _, s := range skills {
 				fmt.Printf("  - %s: %s\n", s.Name, s.Description)
 			}
-			continue
-		case "emotion":
-			fmt.Printf(ColorPurple+"心情: %.2f  精力: %.0f%%  好奇心: %.0f%%\n"+ColorReset,
-				emotion.Mood, emotion.Energy*100, emotion.Curiosity*100)
 			continue
 		case "clear":
 			messages = nil
@@ -562,12 +523,6 @@ func main() {
 		if err != nil {
 			fmt.Printf("错误: %v\n", err)
 			continue
-		}
-
-		// 更新情绪（简单模拟）
-		emotion.Mood += 0.05
-		if emotion.Mood > 1.0 {
-			emotion.Mood = 1.0
 		}
 
 		// 添加回复到记忆
