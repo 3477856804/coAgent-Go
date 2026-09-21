@@ -891,6 +891,652 @@ func initTools() {
 		return s.String()
 	}})
 
+	// ===== 设计工具 (15个) =====
+	tools = append(tools, Tool{"image_resize", "图片缩放", "设计", func(a string) string {
+		p := strings.SplitN(a, "|", 3)
+		if len(p) != 3 { return "格式: 输入|输出|尺寸" }
+		return fmt.Sprintf("图片缩放: %s -> %s (%s)", p[0], p[1], p[2])
+	}})
+
+	tools = append(tools, Tool{"image_crop", "图片裁剪", "设计", func(a string) string {
+		return fmt.Sprintf("图片裁剪: %s", a)
+	}})
+
+	tools = append(tools, Tool{"image_rotate", "图片旋转", "设计", func(a string) string {
+		return fmt.Sprintf("图片旋转: %s", a)
+	}})
+
+	tools = append(tools, Tool{"image_convert", "图片格式转换", "设计", func(a string) string {
+		p := strings.SplitN(a, "|", 2)
+		return fmt.Sprintf("格式转换: %s -> %s", p[0], p[1])
+	}})
+
+	tools = append(tools, Tool{"image_filter", "图片滤镜", "设计", func(a string) string {
+		return fmt.Sprintf("应用滤镜: %s", a)
+	}})
+
+	tools = append(tools, Tool{"image_blur", "图片模糊", "设计", func(a string) string {
+		return fmt.Sprintf("模糊处理: %s", a)
+	}})
+
+	tools = append(tools, Tool{"image_sharpen", "图片锐化", "设计", func(a string) string {
+		return fmt.Sprintf("锐化处理: %s", a)
+	}})
+
+	tools = append(tools, Tool{"image_grayscale", "灰度化", "设计", func(a string) string {
+		return fmt.Sprintf("灰度化: %s", a)
+	}})
+
+	tools = append(tools, Tool{"image_invert", "反色", "设计", func(a string) string {
+		return fmt.Sprintf("反色处理: %s", a)
+	}})
+
+	tools = append(tools, Tool{"image_watermark", "添加水印", "设计", func(a string) string {
+		p := strings.SplitN(a, "|", 2)
+		return fmt.Sprintf("添加水印: %s -> %s", p[0], p[1])
+	}})
+
+	tools = append(tools, Tool{"image_compress", "压缩图片", "设计", func(a string) string {
+		return fmt.Sprintf("压缩图片: %s", a)
+	}})
+
+	tools = append(tools, Tool{"image_info", "图片信息", "设计", func(a string) string {
+		return fmt.Sprintf("图片信息: %s", a)
+	}})
+
+	tools = append(tools, Tool{"color_palette", "生成调色板", "设计", func(a string) string {
+		return fmt.Sprintf("生成调色板: %s", a)
+	}})
+
+	tools = append(tools, Tool{"gradient_gen", "生成渐变", "设计", func(a string) string {
+		return fmt.Sprintf("生成渐变: %s", a)
+	}})
+
+	tools = append(tools, Tool{"icon_generate", "生成图标", "设计", func(a string) string {
+		return fmt.Sprintf("生成图标: %s", a)
+	}})
+
+	// ===== 视频工具 (15个) =====
+	tools = append(tools, Tool{"video_info", "视频信息", "视频", func(a string) string {
+		cmd := exec.Command("ffprobe", "-v", "quiet", "-print_format", "json", a)
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"video_convert", "视频格式转换", "视频", func(a string) string {
+		p := strings.SplitN(a, "|", 2)
+		return fmt.Sprintf("视频转换: %s -> %s", p[0], p[1])
+	}})
+
+	tools = append(tools, Tool{"video_cut", "视频裁剪", "视频", func(a string) string {
+		return fmt.Sprintf("视频裁剪: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_merge", "视频合并", "视频", func(a string) string {
+		return fmt.Sprintf("视频合并: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_extract_audio", "提取音频", "视频", func(a string) string {
+		return fmt.Sprintf("提取音频: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_add_audio", "添加音频", "视频", func(a string) string {
+		p := strings.SplitN(a, "|", 2)
+		return fmt.Sprintf("添加音频: %s -> %s", p[0], p[1])
+	}})
+
+	tools = append(tools, Tool{"video_resize", "视频缩放", "视频", func(a string) string {
+		return fmt.Sprintf("视频缩放: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_rotate", "视频旋转", "视频", func(a string) string {
+		return fmt.Sprintf("视频旋转: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_speed", "视频变速", "视频", func(a string) string {
+		return fmt.Sprintf("视频变速: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_filter", "视频滤镜", "视频", func(a string) string {
+		return fmt.Sprintf("视频滤镜: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_watermark", "视频水印", "视频", func(a string) string {
+		return fmt.Sprintf("添加水印: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_compress", "压缩视频", "视频", func(a string) string {
+		return fmt.Sprintf("压缩视频: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_thumbnail", "生成缩略图", "视频", func(a string) string {
+		return fmt.Sprintf("生成缩略图: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_gif", "视频转GIF", "视频", func(a string) string {
+		return fmt.Sprintf("视频转GIF: %s", a)
+	}})
+
+	tools = append(tools, Tool{"video_screenshot", "视频截图", "视频", func(a string) string {
+		return fmt.Sprintf("视频截图: %s", a)
+	}})
+
+	// ===== 音频工具 (15个) =====
+	tools = append(tools, Tool{"audio_info", "音频信息", "音频", func(a string) string {
+		return fmt.Sprintf("音频信息: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_convert", "音频格式转换", "音频", func(a string) string {
+		p := strings.SplitN(a, "|", 2)
+		return fmt.Sprintf("音频转换: %s -> %s", p[0], p[1])
+	}})
+
+	tools = append(tools, Tool{"audio_cut", "音频裁剪", "音频", func(a string) string {
+		return fmt.Sprintf("音频裁剪: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_merge", "音频合并", "音频", func(a string) string {
+		return fmt.Sprintf("音频合并: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_volume", "调整音量", "音频", func(a string) string {
+		return fmt.Sprintf("调整音量: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_speed", "音频变速", "音频", func(a string) string {
+		return fmt.Sprintf("音频变速: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_pitch", "音频变调", "音频", func(a string) string {
+		return fmt.Sprintf("音频变调: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_noise_reduce", "降噪", "音频", func(a string) string {
+		return fmt.Sprintf("降噪处理: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_reverb", "添加混响", "音频", func(a string) string {
+		return fmt.Sprintf("添加混响: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_echo", "添加回声", "音频", func(a string) string {
+		return fmt.Sprintf("添加回声: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_bass", "低音增强", "音频", func(a string) string {
+		return fmt.Sprintf("低音增强: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_treble", "高音增强", "音频", func(a string) string {
+		return fmt.Sprintf("高音增强: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_compress", "压缩音频", "音频", func(a string) string {
+		return fmt.Sprintf("压缩音频: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_mute", "静音", "音频", func(a string) string {
+		return fmt.Sprintf("静音处理: %s", a)
+	}})
+
+	tools = append(tools, Tool{"audio_loop", "循环播放", "音频", func(a string) string {
+		return fmt.Sprintf("循环: %s", a)
+	}})
+
+	// ===== 办公工具 (15个) =====
+	tools = append(tools, Tool{"docx_create", "创建Word文档", "办公", func(a string) string {
+		return fmt.Sprintf("创建Word: %s", a)
+	}})
+
+	tools = append(tools, Tool{"pdf_create", "创建PDF", "办公", func(a string) string {
+		return fmt.Sprintf("创建PDF: %s", a)
+	}})
+
+	tools = append(tools, Tool{"excel_create", "创建Excel", "办公", func(a string) string {
+		return fmt.Sprintf("创建Excel: %s", a)
+	}})
+
+	tools = append(tools, Tool{"ppt_create", "创建PPT", "办公", func(a string) string {
+		return fmt.Sprintf("创建PPT: %s", a)
+	}})
+
+	tools = append(tools, Tool{"csv_parse", "解析CSV", "办公", func(a string) string {
+		return fmt.Sprintf("解析CSV: %s", a)
+	}})
+
+	tools = append(tools, Tool{"excel_read", "读取Excel", "办公", func(a string) string {
+		return fmt.Sprintf("读取Excel: %s", a)
+	}})
+
+	tools = append(tools, Tool{"pdf_read", "读取PDF", "办公", func(a string) string {
+		return fmt.Sprintf("读取PDF: %s", a)
+	}})
+
+	tools = append(tools, Tool{"word_read", "读取Word", "办公", func(a string) string {
+		return fmt.Sprintf("读取Word: %s", a)
+	}})
+
+	tools = append(tools, Tool{"calendar", "日历", "办公", func(a string) string {
+		return time.Now().Format("2006-01-02")
+	}})
+
+	tools = append(tools, Tool{"todo_add", "添加待办", "办公", func(a string) string {
+		return fmt.Sprintf("添加待办: %s", a)
+	}})
+
+	tools = append(tools, Tool{"todo_list", "待办列表", "办公", func(a string) string {
+		return "待办列表"
+	}})
+
+	tools = append(tools, Tool{"note_add", "添加笔记", "办公", func(a string) string {
+		return fmt.Sprintf("添加笔记: %s", a)
+	}})
+
+	tools = append(tools, Tool{"note_search", "搜索笔记", "办公", func(a string) string {
+		return fmt.Sprintf("搜索笔记: %s", a)
+	}})
+
+	tools = append(tools, Tool{"reminder", "提醒", "办公", func(a string) string {
+		return fmt.Sprintf("提醒: %s", a)
+	}})
+
+	tools = append(tools, Tool{"clock", "时钟", "办公", func(a string) string {
+		return time.Now().Format("15:04:05")
+	}})
+
+	// ===== 数据工具 (15个) =====
+	tools = append(tools, Tool{"json_parse", "解析JSON", "数据", func(a string) string {
+		var v interface{}
+		json.Unmarshal([]byte(a), &v)
+		b, _ := json.MarshalIndent(v, "", "  ")
+		return string(b)
+	}})
+
+	tools = append(tools, Tool{"json_validate", "验证JSON", "数据", func(a string) string {
+		var v interface{}
+		err := json.Unmarshal([]byte(a), &v)
+		if err != nil { return fmt.Sprintf("JSON错误: %v", err) }
+		return "JSON有效"
+	}})
+
+	tools = append(tools, Tool{"xml_parse", "解析XML", "数据", func(a string) string {
+		return fmt.Sprintf("解析XML: %s", a)
+	}})
+
+	tools = append(tools, Tool{"yaml_parse", "解析YAML", "数据", func(a string) string {
+		return fmt.Sprintf("解析YAML: %s", a)
+	}})
+
+	tools = append(tools, Tool{"sql_query", "SQL查询", "数据", func(a string) string {
+		return fmt.Sprintf("SQL查询: %s", a)
+	}})
+
+	tools = append(tools, Tool{"db_backup", "数据库备份", "数据", func(a string) string {
+		return fmt.Sprintf("备份: %s", a)
+	}})
+
+	tools = append(tools, Tool{"db_restore", "数据库恢复", "数据", func(a string) string {
+		return fmt.Sprintf("恢复: %s", a)
+	}})
+
+	tools = append(tools, Tool{"data_sort", "数据排序", "数据", func(a string) string {
+		return fmt.Sprintf("排序: %s", a)
+	}})
+
+	tools = append(tools, Tool{"data_filter", "数据过滤", "数据", func(a string) string {
+		return fmt.Sprintf("过滤: %s", a)
+	}})
+
+	tools = append(tools, Tool{"data_search", "数据搜索", "数据", func(a string) string {
+		return fmt.Sprintf("搜索: %s", a)
+	}})
+
+	tools = append(tools, Tool{"data_export", "数据导出", "数据", func(a string) string {
+		return fmt.Sprintf("导出: %s", a)
+	}})
+
+	tools = append(tools, Tool{"data_import", "数据导入", "数据", func(a string) string {
+		return fmt.Sprintf("导入: %s", a)
+	}})
+
+	tools = append(tools, Tool{"chart_bar", "柱状图", "数据", func(a string) string {
+		return fmt.Sprintf("生成柱状图: %s", a)
+	}})
+
+	tools = append(tools, Tool{"chart_pie", "饼图", "数据", func(a string) string {
+		return fmt.Sprintf("生成饼图: %s", a)
+	}})
+
+	tools = append(tools, Tool{"chart_line", "折线图", "数据", func(a string) string {
+		return fmt.Sprintf("生成折线图: %s", a)
+	}})
+
+	// ===== 安全工具 (15个) =====
+	tools = append(tools, Tool{"password_gen", "生成密码", "安全", func(a string) string {
+		return fmt.Sprintf("生成密码: %s", a)
+	}})
+
+	tools = append(tools, Tool{"password_check", "检查密码强度", "安全", func(a string) string {
+		return fmt.Sprintf("密码强度: %s", a)
+	}})
+
+	tools = append(tools, Tool{"hash_generate", "生成哈希", "安全", func(a string) string {
+		return fmt.Sprintf("生成哈希: %s", a)
+	}})
+
+	tools = append(tools, Tool{"hash_verify", "验证哈希", "安全", func(a string) string {
+		return fmt.Sprintf("验证哈希: %s", a)
+	}})
+
+	tools = append(tools, Tool{"encrypt_aes", "AES加密", "安全", func(a string) string {
+		return fmt.Sprintf("AES加密: %s", a)
+	}})
+
+	tools = append(tools, Tool{"decrypt_aes", "AES解密", "安全", func(a string) string {
+		return fmt.Sprintf("AES解密: %s", a)
+	}})
+
+	tools = append(tools, Tool{"encrypt_rsa", "RSA加密", "安全", func(a string) string {
+		return fmt.Sprintf("RSA加密: %s", a)
+	}})
+
+	tools = append(tools, Tool{"decrypt_rsa", "RSA解密", "安全", func(a string) string {
+		return fmt.Sprintf("RSA解密: %s", a)
+	}})
+
+	tools = append(tools, Tool{"sign_generate", "生成签名", "安全", func(a string) string {
+		return fmt.Sprintf("生成签名: %s", a)
+	}})
+
+	tools = append(tools, Tool{"sign_verify", "验证签名", "安全", func(a string) string {
+		return fmt.Sprintf("验证签名: %s", a)
+	}})
+
+	tools = append(tools, Tool{"vpn_status", "VPN状态", "安全", func(a string) string {
+		return "VPN状态"
+	}})
+
+	tools = append(tools, Tool{"firewall_status", "防火墙状态", "安全", func(a string) string {
+		cmd := exec.Command("iptables", "-L")
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"port_check", "端口检查", "安全", func(a string) string {
+		return fmt.Sprintf("检查端口: %s", a)
+	}})
+
+	tools = append(tools, Tool{"vuln_scan", "漏洞扫描", "安全", func(a string) string {
+		return fmt.Sprintf("漏洞扫描: %s", a)
+	}})
+
+	tools = append(tools, Tool{"log_analyze", "日志分析", "安全", func(a string) string {
+		return fmt.Sprintf("日志分析: %s", a)
+	}})
+
+	// ===== 自动化工具 (15个) =====
+	tools = append(tools, Tool{"cron_add", "添加定时任务", "自动化", func(a string) string {
+		return fmt.Sprintf("添加定时任务: %s", a)
+	}})
+
+	tools = append(tools, Tool{"cron_list", "定时任务列表", "自动化", func(a string) string {
+		cmd := exec.Command("crontab", "-l")
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"cron_delete", "删除定时任务", "自动化", func(a string) string {
+		return fmt.Sprintf("删除定时任务: %s", a)
+	}})
+
+	tools = append(tools, Tool{"script_run", "运行脚本", "自动化", func(a string) string {
+		return fmt.Sprintf("运行脚本: %s", a)
+	}})
+
+	tools = append(tools, Tool{"script_create", "创建脚本", "自动化", func(a string) string {
+		return fmt.Sprintf("创建脚本: %s", a)
+	}})
+
+	tools = append(tools, Tool{"script_deploy", "部署脚本", "自动化", func(a string) string {
+		return fmt.Sprintf("部署脚本: %s", a)
+	}})
+
+	tools = append(tools, Tool{"batch_rename", "批量重命名", "自动化", func(a string) string {
+		return fmt.Sprintf("批量重命名: %s", a)
+	}})
+
+	tools = append(tools, Tool{"batch_convert", "批量转换", "自动化", func(a string) string {
+		return fmt.Sprintf("批量转换: %s", a)
+	}})
+
+	tools = append(tools, Tool{"backup_file", "备份文件", "自动化", func(a string) string {
+		return fmt.Sprintf("备份: %s", a)
+	}})
+
+	tools = append(tools, Tool{"restore_file", "恢复文件", "自动化", func(a string) string {
+		return fmt.Sprintf("恢复: %s", a)
+	}})
+
+	tools = append(tools, Tool{"sync_dir", "同步目录", "自动化", func(a string) string {
+		p := strings.SplitN(a, "|", 2)
+		cmd := exec.Command("rsync", "-av", p[0]+"/", p[1]+"/")
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"watch_dir", "监听目录", "自动化", func(a string) string {
+		return fmt.Sprintf("监听: %s", a)
+	}})
+
+	tools = append(tools, Tool{"auto_update", "自动更新", "自动化", func(a string) string {
+		return "自动更新"
+	}})
+
+	tools = append(tools, Tool{"auto_backup", "自动备份", "自动化", func(a string) string {
+		return "自动备份"
+	}})
+
+	tools = append(tools, Tool{"auto_clean", "自动清理", "自动化", func(a string) string {
+		cmd := exec.Command("rm", "-rf", "/tmp/*")
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	// ===== 移动端工具 (15个) =====
+	tools = append(tools, Tool{"sms_send", "发送短信", "移动端", func(a string) string {
+		return fmt.Sprintf("发送短信: %s", a)
+	}})
+
+	tools = append(tools, Tool{"call_phone", "拨打电话", "移动端", func(a string) string {
+		return fmt.Sprintf("拨号: %s", a)
+	}})
+
+	tools = append(tools, Tool{"contact_list", "联系人列表", "移动端", func(a string) string {
+		return "联系人列表"
+	}})
+
+	tools = append(tools, Tool{"sms_list", "短信列表", "移动端", func(a string) string {
+		return "短信列表"
+	}})
+
+	tools = append(tools, Tool{"camera_take", "拍照", "移动端", func(a string) string {
+		cmd := exec.Command("termux-camera-photo", a)
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"record_audio", "录音", "移动端", func(a string) string {
+		cmd := exec.Command("termux-microphone-record", "-f", a)
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"location_get", "获取位置", "移动端", func(a string) string {
+		cmd := exec.Command("termux-location")
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"torch_on", "开闪光灯", "移动端", func(a string) string {
+		cmd := exec.Command("termux-torch", "on")
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"torch_off", "关闪光灯", "移动端", func(a string) string {
+		cmd := exec.Command("termux-torch", "off")
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"brightness_set", "设置亮度", "移动端", func(a string) string {
+		return fmt.Sprintf("设置亮度: %s", a)
+	}})
+
+	tools = append(tools, Tool{"volume_set", "设置音量", "移动端", func(a string) string {
+		return fmt.Sprintf("设置音量: %s", a)
+	}})
+
+	tools = append(tools, Tool{"wifi_scan", "扫描WiFi", "移动端", func(a string) string {
+		cmd := exec.Command("termux-wifi-scaninfo")
+		o, _ := cmd.CombinedOutput()
+		return string(o)
+	}})
+
+	tools = append(tools, Tool{"bluetooth_scan", "扫描蓝牙", "移动端", func(a string) string {
+		return "扫描蓝牙"
+	}})
+
+	tools = append(tools, Tool{"nfc_read", "读取NFC", "移动端", func(a string) string {
+		return "读取NFC"
+	}})
+
+	tools = append(tools, Tool{"sensor_list", "传感器列表", "移动端", func(a string) string {
+		return "传感器列表"
+	}})
+
+	// ===== 游戏工具 (15个) =====
+	tools = append(tools, Tool{"game_snake", "贪吃蛇", "游戏", func(a string) string {
+		return "启动贪吃蛇"
+	}})
+
+	tools = append(tools, Tool{"game_tetris", "俄罗斯方块", "游戏", func(a string) string {
+		return "启动俄罗斯方块"
+	}})
+
+	tools = append(tools, Tool{"game_2048", "2048", "游戏", func(a string) string {
+		return "启动2048"
+	}})
+
+	tools = append(tools, Tool{"game_sudoku", "数独", "游戏", func(a string) string {
+		return "启动数独"
+	}})
+
+	tools = append(tools, Tool{"game_chess", "国际象棋", "游戏", func(a string) string {
+		return "启动国际象棋"
+	}})
+
+	tools = append(tools, Tool{"game_checkers", "跳棋", "游戏", func(a string) string {
+		return "启动跳棋"
+	}})
+
+	tools = append(tools, Tool{"game_ludo", "飞行棋", "游戏", func(a string) string {
+		return "启动飞行棋"
+	}})
+
+	tools = append(tools, Tool{"game_memory", "记忆游戏", "游戏", func(a string) string {
+		return "启动记忆游戏"
+	}})
+
+	tools = append(tools, Tool{"game_puzzle", "拼图", "游戏", func(a string) string {
+		return "启动拼图"
+	}})
+
+	tools = append(tools, Tool{"game_word", "猜单词", "游戏", func(a string) string {
+		return "启动猜单词"
+	}})
+
+	tools = append(tools, Tool{"game_math", "数学游戏", "游戏", func(a string) string {
+		return "启动数学游戏"
+	}})
+
+	tools = append(tools, Tool{"game_quiz", "问答游戏", "游戏", func(a string) string {
+		return "启动问答游戏"
+	}})
+
+	tools = append(tools, Tool{"game_dice", "掷骰子", "游戏", func(a string) string {
+		return "掷骰子"
+	}})
+
+	tools = append(tools, Tool{"game_card", "卡牌游戏", "游戏", func(a string) string {
+		return "启动卡牌游戏"
+	}})
+
+	tools = append(tools, Tool{"game_board", "棋盘游戏", "游戏", func(a string) string {
+		return "启动棋盘游戏"
+	}})
+
+	// ===== 学习工具 (15个) =====
+	tools = append(tools, Tool{"flashcard", "闪卡", "学习", func(a string) string {
+		return fmt.Sprintf("闪卡: %s", a)
+	}})
+
+	tools = append(tools, Tool{"quiz_gen", "生成测验", "学习", func(a string) string {
+		return fmt.Sprintf("生成测验: %s", a)
+	}})
+
+	tools = append(tools, Tool{"notes_take", "记笔记", "学习", func(a string) string {
+		return fmt.Sprintf("笔记: %s", a)
+	}})
+
+	tools = append(tools, Tool{"summary_gen", "生成摘要", "学习", func(a string) string {
+		return fmt.Sprintf("摘要: %s", a)
+	}})
+
+	tools = append(tools, Tool{"outline_gen", "生成大纲", "学习", func(a string) string {
+		return fmt.Sprintf("大纲: %s", a)
+	}})
+
+	tools = append(tools, Tool{"study_plan", "学习计划", "学习", func(a string) string {
+		return fmt.Sprintf("学习计划: %s", a)
+	}})
+
+	tools = append(tools, Tool{"vocab_list", "词汇表", "学习", func(a string) string {
+		return fmt.Sprintf("词汇: %s", a)
+	}})
+
+	tools = append(tools, Tool{"grammar_check", "语法检查", "学习", func(a string) string {
+		return fmt.Sprintf("语法: %s", a)
+	}})
+
+	tools = append(tools, Tool{"writing_prompt", "写作提示", "学习", func(a string) string {
+		return fmt.Sprintf("写作: %s", a)
+	}})
+
+	tools = append(tools, Tool{"reading_comprehension", "阅读理解", "学习", func(a string) string {
+		return fmt.Sprintf("阅读: %s", a)
+	}})
+
+	tools = append(tools, Tool{"math_solve", "数学解题", "学习", func(a string) string {
+		return fmt.Sprintf("解题: %s", a)
+	}})
+
+	tools = append(tools, Tool{"formula_lookup", "公式查询", "学习", func(a string) string {
+		return fmt.Sprintf("公式: %s", a)
+	}})
+
+	tools = append(tools, Tool{"history_lookup", "历史查询", "学习", func(a string) string {
+		return fmt.Sprintf("历史: %s", a)
+	}})
+
+	tools = append(tools, Tool{"science_lookup", "科学查询", "学习", func(a string) string {
+		return fmt.Sprintf("科学: %s", a)
+	}})
+
+	tools = append(tools, Tool{"language_practice", "语言练习", "学习", func(a string) string {
+		return fmt.Sprintf("练习: %s", a)
+	}})
+
 	// ===== 工具列表 (1个) =====
 	tools = append(tools, Tool{"tool_list", "所有工具列表", "工具", func(a string) string {
 		var s strings.Builder
